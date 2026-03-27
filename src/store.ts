@@ -14,8 +14,15 @@ type TStoreState = {
   updateRead: string;
 };
 
-// user data as stored in browser's localStorage
+// user data as stored in browser's localStorage (new format with counts)
 type TUserData = {
+  runeCounts: Partial<Record<TRuneId, number>>;
+  pinnedRunewords: TRunewordId[];
+  updateRead: string;
+};
+
+// legacy format (boolean-based)
+type TLegacyUserData = {
   selectedRunes: TRuneId[];
   pinnedRunewords: TRunewordId[];
   updateRead: string;
@@ -39,35 +46,49 @@ const store = {
   },
 
   clearRunes() {
-    this.setRunes(runesIds(), false);
+    for (const runeId of runesIds()) {
+      this.state.haveRunes[runeId] = 0;
+    }
   },
 
   /**
-   * returns an array of selected rune ids
+   * returns an array of selected rune ids (those with count > 0)
    */
   getRunes() {
-    const runesIds: TRuneId[] = [];
+    const result: TRuneId[] = [];
 
     for (const runeId of Object.keys(this.state.haveRunes) as TRuneId[]) {
-      if (this.state.haveRunes[runeId]) {
-        runesIds.push(runeId);
+      if (this.state.haveRunes[runeId] > 0) {
+        result.push(runeId);
       }
     }
 
-    return runesIds;
+    return result;
   },
 
   /**
-   * sets selected runes from an array of rune ids
+   * sets rune count for a specific rune
    */
-  setRunes(runes: TRuneId[], state = true) {
-    for (const runeId of runes) {
-      this.state.haveRunes[runeId] = state;
-    }
+  setRuneCount(runeId: TRuneId, count: number) {
+    this.state.haveRunes[runeId] = Math.max(0, count);
+  },
+
+  incrementRune(runeId: TRuneId) {
+    const current = this.state.haveRunes[runeId] || 0;
+    this.state.haveRunes[runeId] = current + 1;
+  },
+
+  decrementRune(runeId: TRuneId) {
+    const current = this.state.haveRunes[runeId] || 0;
+    this.state.haveRunes[runeId] = Math.max(0, current - 1);
+  },
+
+  getRuneCount(runeId: TRuneId): number {
+    return this.state.haveRunes[runeId] || 0;
   },
 
   hasRune(runeId: TRuneId) {
-    return this.state.haveRunes[runeId] || false;
+    return (this.state.haveRunes[runeId] || 0) > 0;
   },
 
   reset() {
@@ -114,7 +135,18 @@ const store = {
       return;
     }
 
-    this.setRunes(userData.selectedRunes);
+    // migrate from legacy boolean format to count format
+    if (userData.selectedRunes && !userData.runeCounts) {
+      // old format: { selectedRunes: TRuneId[] }
+      for (const runeId of userData.selectedRunes as TRuneId[]) {
+        this.state.haveRunes[runeId] = 1;
+      }
+    } else if (userData.runeCounts) {
+      // new format: { runeCounts: Record<TRuneId, number> }
+      for (const [runeId, count] of Object.entries(userData.runeCounts)) {
+        this.state.haveRunes[runeId as TRuneId] = count as number;
+      }
+    }
 
     // note! watchout for existing users not having updated keys
     this.setPinned(userData.pinnedRunewords || []);
@@ -127,13 +159,20 @@ const store = {
 
     if (!this.storage) return;
 
+    // build runeCounts from haveRunes (only store non-zero counts)
+    const runeCounts: Partial<Record<TRuneId, number>> = {};
+    for (const runeId of Object.keys(this.state.haveRunes) as TRuneId[]) {
+      const count = this.state.haveRunes[runeId];
+      if (count > 0) {
+        runeCounts[runeId] = count;
+      }
+    }
+
     const userData: TUserData = {
-      selectedRunes: this.getRunes(),
+      runeCounts,
       pinnedRunewords: this.getPinned(),
       updateRead: this.state.updateRead,
     };
-
-    // console.log("store.saveState()", userData);
 
     try {
       storedData = JSON.stringify(userData);
