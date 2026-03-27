@@ -142,9 +142,14 @@ import RunewordPopup from "@/components/RunewordPopup.vue";
 type TRunewordPopup = TVueInstanceOf<typeof RunewordPopup>;
 
 export function runesHtml(word: TRuneword, haveRunes: TRuneDict) {
+  const used = new Map<TRuneId, number>();
   const html = word.runes
     .map((runeId: TRuneId) => {
-      return `<span class="is-rune ${haveRunes[runeId] ? "on" : "off"}">${runeId}</span>`;
+      const usedCount = used.get(runeId) || 0;
+      const available = (haveRunes[runeId] || 0) - usedCount;
+      const isOn = available > 0;
+      if (isOn) used.set(runeId, usedCount + 1);
+      return `<span class="is-rune ${isOn ? "on" : "off"}">${runeId}</span>`;
     })
     .join("");
   return html;
@@ -210,10 +215,15 @@ export default defineComponent({
       const map = new Map<string, boolean>();
 
       this.items.forEach((runeword) => {
-        map.set(
-          runeword.title,
-          runeword.runes.every((runeId) => this.haveRunes[runeId])
+        // count required runes (some runewords need multiples, e.g. Last Wish needs 3 Jah)
+        const requiredCounts = new Map<TRuneId, number>();
+        runeword.runes.forEach((runeId) => {
+          requiredCounts.set(runeId, (requiredCounts.get(runeId) || 0) + 1);
+        });
+        const isComplete = [...requiredCounts.entries()].every(
+          ([runeId, count]) => (this.haveRunes[runeId] || 0) >= count
         );
+        map.set(runeword.title, isComplete);
       });
 
       return map;
