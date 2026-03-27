@@ -82,7 +82,7 @@ a {
 // -------------------------------------------------------------------- */
 
 .rw-Layout-row {
-  @apply max-w-[1100px];
+  @apply max-w-[1300px];
 }
 
 .rw-Layout-goldBarSeparator {

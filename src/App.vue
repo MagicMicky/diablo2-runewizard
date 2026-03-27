@@ -1,9 +1,11 @@
 <template>
   <app-header v-if="useLayoutHeader" />
 
-  <main class="rw-Layout-row rw-Main mx-auto px-4 py-4 mb-24">
+  <main class="rw-Layout-row rw-Main mx-auto lg:px-4 py-4 lg:flex mb-24">
     <runes />
-    <runewords />
+    <div class="flex-1 lg:ml-8">
+      <runewords />
+    </div>
   </main>
 
   <app-footer />
