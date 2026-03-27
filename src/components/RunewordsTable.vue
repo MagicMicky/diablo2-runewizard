@@ -142,9 +142,14 @@ import RunewordPopup from "@/components/RunewordPopup.vue";
 type TRunewordPopup = TVueInstanceOf<typeof RunewordPopup>;
 
 export function runesHtml(word: TRuneword, haveRunes: TRuneDict) {
+  const used = new Map<TRuneId, number>();
   const html = word.runes
     .map((runeId: TRuneId) => {
-      return `<span class="is-rune ${haveRunes[runeId] ? "on" : "off"}">${runeId}</span>`;
+      const usedCount = used.get(runeId) || 0;
+      const available = (haveRunes[runeId] || 0) - usedCount;
+      const isOn = available > 0;
+      if (isOn) used.set(runeId, usedCount + 1);
+      return `<span class="is-rune ${isOn ? "on" : "off"}">${runeId}</span>`;
     })
     .join("");
   return html;
