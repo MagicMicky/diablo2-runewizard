@@ -96,9 +96,14 @@ export default defineComponent({
   methods: {
     getRunesHtml(word: TRuneword) {
       const haveRunes = this.haveRunes;
+      const used = new Map<TRuneId, number>();
       const html = word.runes
         .map((runeId: TRuneId) => {
-          return `<div class="rw-RuneImg rune-${runeId}"></div><div class="is-rune ${haveRunes[runeId] ? "on" : "off"}">${runeId}</div>`;
+          const usedCount = used.get(runeId) || 0;
+          const available = (haveRunes[runeId] || 0) - usedCount;
+          const isOn = available > 0;
+          if (isOn) used.set(runeId, usedCount + 1);
+          return `<div class="rw-RuneImg rune-${runeId}"></div><div class="is-rune ${isOn ? "on" : "off"}">${runeId}</div>`;
         })
         .join("");
       return html;
