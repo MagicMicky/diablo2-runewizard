@@ -47,19 +47,19 @@ import store from "@/store";
 
 import IconCancel from "@/icons/IconCancel.vue";
 
-// D2R stash layout: 10 columns x 5 rows with Mendeleev-style gaps
+// D2R stash layout: 9 columns x 5 rows with Mendeleev-style gaps
 // null = empty cell
 const STASH_LAYOUT: (TRuneId | null)[] = [
-  // Row 1: common runes (full row)
-  "El",  "Eld",  "Tir",  "Nef", "Eth", "Ith", "Tal", "Ral", "Ort", "Thul",
-  // Row 2: mid runes (full row)
-  "Amn", "Sol",  "Shael", "Dol", "Hel", "Io",  "Lum", "Ko",  "Fal", "Lem",
-  // Row 3: high runes, 2 empty on right
-  "Pul", "Um",   "Mal",  "Ist", "Gul", "Vex", "Ohm", "Lo",  null,  null,
-  // Row 4: 2 left, gap of 6, 2 right
-  "Sur", "Ber",  null,   null,  null,  null,  null,  null,  "Jah", "Cham",
-  // Row 5: Zod alone
-  "Zod", null,   null,   null,  null,  null,  null,  null,  null,  null,
+  // Row 1 (9)
+  "El",   "Eld",  "Tir",  "Nef",  "Eth",  "Ith",  "Tal",  "Ral",  "Ort",
+  // Row 2 (9)
+  "Thul", "Amn",  "Sol",  "Shael", "Dol", "Hel",  "Io",   "Lum",  "Ko",
+  // Row 3 (9)
+  "Fal",  "Lem",  "Pul",  "Um",   "Mal",  "Ist",  "Gul",  "Vex",  "Ohm",
+  // Row 4 (2 + 5 empty + 2)
+  "Lo",   "Sur",  null,   null,   null,   null,   null,   "Ber",  "Jah",
+  // Row 5 (1 + 7 empty + 1)
+  "Cham", null,   null,   null,   null,   null,   null,   null,   "Zod",
 ];
 
 export default defineComponent({

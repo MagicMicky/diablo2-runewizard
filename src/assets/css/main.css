@@ -387,12 +387,8 @@ a {
 
 .rw-StashGrid {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
+  grid-template-columns: repeat(9, 1fr);
   gap: 2px;
-
-  @media screen and (width < 640px) {
-    grid-template-columns: repeat(7, 1fr);
-  }
 }
 
 .rw-StashCell {
