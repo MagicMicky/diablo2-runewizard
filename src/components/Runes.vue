@@ -14,30 +14,27 @@
 
     <div class="rw-Stash select-none mb-4">
       <div class="rw-StashGrid">
-        <!-- rune cells -->
-        <div
-          v-for="rune in runes"
-          :key="rune.name"
-          class="rw-StashCell"
-          :class="{
-            'is-selected': haveRunes[rune.name] > 0,
-          }"
-          @click="onIncrement(rune.name)"
-          @contextmenu.prevent="onDecrement(rune.name)"
-        >
-          <div class="rw-RuneImg" :class="`rune-` + rune.name"></div>
-          <div class="rw-StashCell-count" v-if="haveRunes[rune.name] > 0">{{
-            haveRunes[rune.name]
-          }}</div>
-          <div class="rw-StashCell-name">{{ rune.name }}</div>
-        </div>
+        <template v-for="(cell, i) in stashLayout" :key="i">
+          <!-- rune cell -->
+          <div
+            v-if="cell !== null"
+            class="rw-StashCell"
+            :class="{
+              'is-selected': haveRunes[cell] > 0,
+            }"
+            @click="onIncrement(cell)"
+            @contextmenu.prevent="onDecrement(cell)"
+          >
+            <div class="rw-RuneImg" :class="`rune-` + cell"></div>
+            <div class="rw-StashCell-count" v-if="haveRunes[cell] > 0">{{
+              haveRunes[cell]
+            }}</div>
+            <div class="rw-StashCell-name">{{ cell }}</div>
+          </div>
 
-        <!-- empty cells to fill the last row -->
-        <div
-          v-for="n in emptyCells"
-          :key="'empty-' + n"
-          class="rw-StashCell rw-StashCell--empty"
-        ></div>
+          <!-- empty cell -->
+          <div v-else class="rw-StashCell rw-StashCell--empty"></div>
+        </template>
       </div>
     </div>
   </div>
@@ -46,12 +43,24 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import runesData from "@/data/runes";
 import store from "@/store";
 
 import IconCancel from "@/icons/IconCancel.vue";
 
-const GRID_COLUMNS = 10;
+// D2R stash layout: 10 columns x 5 rows with Mendeleev-style gaps
+// null = empty cell
+const STASH_LAYOUT: (TRuneId | null)[] = [
+  // Row 1: common runes (full row)
+  "El",  "Eld",  "Tir",  "Nef", "Eth", "Ith", "Tal", "Ral", "Ort", "Thul",
+  // Row 2: mid runes (full row)
+  "Amn", "Sol",  "Shael", "Dol", "Hel", "Io",  "Lum", "Ko",  "Fal", "Lem",
+  // Row 3: high runes, 2 empty on right
+  "Pul", "Um",   "Mal",  "Ist", "Gul", "Vex", "Ohm", "Lo",  null,  null,
+  // Row 4: 2 left, gap of 6, 2 right
+  "Sur", "Ber",  null,   null,  null,  null,  null,  null,  "Jah", "Cham",
+  // Row 5: Zod alone
+  "Zod", null,   null,   null,  null,  null,  null,  null,  null,  null,
+];
 
 export default defineComponent({
   name: "RunesGrid",
@@ -63,18 +72,13 @@ export default defineComponent({
   data() {
     return {
       haveRunes: store.state.haveRunes,
-      runes: runesData,
+      stashLayout: STASH_LAYOUT,
     };
   },
 
   computed: {
     isAnyRuneSelected(): boolean {
       return store.getRunes().length > 0;
-    },
-
-    emptyCells(): number {
-      const remainder = this.runes.length % GRID_COLUMNS;
-      return remainder === 0 ? 0 : GRID_COLUMNS - remainder;
     },
   },
 
