@@ -210,10 +210,15 @@ export default defineComponent({
       const map = new Map<string, boolean>();
 
       this.items.forEach((runeword) => {
-        map.set(
-          runeword.title,
-          runeword.runes.every((runeId) => this.haveRunes[runeId])
+        // count required runes (some runewords need multiples, e.g. Last Wish needs 3 Jah)
+        const requiredCounts = new Map<TRuneId, number>();
+        runeword.runes.forEach((runeId) => {
+          requiredCounts.set(runeId, (requiredCounts.get(runeId) || 0) + 1);
+        });
+        const isComplete = [...requiredCounts.entries()].every(
+          ([runeId, count]) => (this.haveRunes[runeId] || 0) >= count
         );
+        map.set(runeword.title, isComplete);
       });
 
       return map;

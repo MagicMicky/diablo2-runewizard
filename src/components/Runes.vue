@@ -12,27 +12,32 @@
       </div>
     </div>
 
-    <div
-      class="rw-Runes lg:flex lg:justify-between lg:w-[140px] lg:mx-0 mx-[2px] md:mx-4 select-none mb-4"
-    >
-      <div
-        v-for="(runesTier, i) in runesByTier"
-        :key="i"
-        class="flex lg:block lg:w-1/3 justify-between"
-      >
-        <!-- a single rune -->
+    <div class="rw-Stash select-none mb-4">
+      <div class="rw-StashGrid">
+        <!-- rune cells -->
         <div
-          v-for="rune in runesTier"
+          v-for="rune in runes"
           :key="rune.name"
-          class="rw-Rune flex-[0 0 0] mb-1"
+          class="rw-StashCell"
           :class="{
-            'is-selected': haveRunes[rune.name],
+            'is-selected': haveRunes[rune.name] > 0,
           }"
-          @click="onToggleRune(rune.name)"
+          @click="onIncrement(rune.name)"
+          @contextmenu.prevent="onDecrement(rune.name)"
         >
           <div class="rw-RuneImg" :class="`rune-` + rune.name"></div>
-          <div class="text-center leading-none text-smx">{{ rune.name }}</div>
+          <div class="rw-StashCell-count" v-if="haveRunes[rune.name] > 0">{{
+            haveRunes[rune.name]
+          }}</div>
+          <div class="rw-StashCell-name">{{ rune.name }}</div>
         </div>
+
+        <!-- empty cells to fill the last row -->
+        <div
+          v-for="n in emptyCells"
+          :key="'empty-' + n"
+          class="rw-StashCell rw-StashCell--empty"
+        ></div>
       </div>
     </div>
   </div>
@@ -41,10 +46,12 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import runesData, { ERuneTier } from "@/data/runes";
+import runesData from "@/data/runes";
 import store from "@/store";
 
 import IconCancel from "@/icons/IconCancel.vue";
+
+const GRID_COLUMNS = 10;
 
 export default defineComponent({
   name: "RunesGrid",
@@ -65,16 +72,9 @@ export default defineComponent({
       return store.getRunes().length > 0;
     },
 
-    runesByTier(): TRuneDef[][] {
-      const tiers = [
-        this.runes.filter((rune) => rune.tier === ERuneTier.COMMON),
-        this.runes.filter((rune) => rune.tier === ERuneTier.SEMIRARE),
-        this.runes.filter((rune) => rune.tier === ERuneTier.RARE),
-      ];
-
-      // console.log(tiers);
-
-      return tiers;
+    emptyCells(): number {
+      const remainder = this.runes.length % GRID_COLUMNS;
+      return remainder === 0 ? 0 : GRID_COLUMNS - remainder;
     },
   },
 
@@ -84,10 +84,13 @@ export default defineComponent({
       store.saveState();
     },
 
-    onToggleRune(runeId: TRuneId) {
-      const state = store.hasRune(runeId);
+    onIncrement(runeId: TRuneId) {
+      store.incrementRune(runeId);
+      store.saveState();
+    },
 
-      store.setRunes([runeId], !state);
+    onDecrement(runeId: TRuneId) {
+      store.decrementRune(runeId);
       store.saveState();
     },
   },

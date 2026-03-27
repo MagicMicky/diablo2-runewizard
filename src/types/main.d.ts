@@ -62,8 +62,8 @@ type TRuneDef = {
   tier: ERuneTier;
 };
 
-// a dictionary of 
-type TRuneDict = Dictionary<TRuneId, boolean>;
+// a dictionary of rune counts (0 = don't have)
+type TRuneDict = Dictionary<TRuneId, number>;
 
 type TRunewordId = string;
 
